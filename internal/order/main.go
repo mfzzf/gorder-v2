@@ -14,8 +14,7 @@ func init() {
 
 func main() {
 	str := viper.Get("order")
-	value, _ := str.(map[string]interface{})
-	log.Printf("%v", value["http-addr"])
+	log.Printf("%v", str)
 	//log.Println("Listening on 8082")
 	//mux := http.NewServeMux()
 	//
