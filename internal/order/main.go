@@ -1,9 +1,10 @@
 package main
 
 import (
+	"log"
+
 	"github.com/mfzzf/gorder-v2/common/config"
 	"github.com/spf13/viper"
-	"log"
 )
 
 func init() {
