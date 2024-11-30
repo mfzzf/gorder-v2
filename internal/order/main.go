@@ -1,8 +1,11 @@
 package main
 
 import (
+	"github.com/mfzzf/gorder-v2/common/server"
+	"github.com/mfzzf/gorder-v2/order/ports"
 	"log"
 
+	"github.com/gin-gonic/gin"
 	"github.com/mfzzf/gorder-v2/common/config"
 	"github.com/spf13/viper"
 )
@@ -14,19 +17,12 @@ func init() {
 }
 
 func main() {
-	str := viper.Get("order")
-	log.Printf("%v", str)
-	//log.Println("Listening on 8082")
-	//mux := http.NewServeMux()
-	//
-	//mux.HandleFunc("/ping",
-	//	func(w http.ResponseWriter, r *http.Request) {
-	//		log.Printf("%v", r.RequestURI)
-	//		_, _ = io.WriteString(w, "<h1>Welcome To Home Page</h1>")
-	//	})
-	//
-	//if err := http.ListenAndServe(":8082", mux); err != nil {
-	//	log.Fatal(err)
-	//}
-
+	serviceName := viper.GetString("order.service-name")
+	server.RunHTTPServer(serviceName, func(router *gin.Engine) {
+		ports.RegisterHandlersWithOptions(router, HTTPServer{}, ports.GinServerOptions{
+			BaseURL:      "/api",
+			Middlewares:  nil,
+			ErrorHandler: nil,
+		})
+	})
 }
