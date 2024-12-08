@@ -18,8 +18,7 @@ func RunHTTPServerOnAddr(addr string, wrapper func(router *gin.Engine)) {
 	wrapper(apiRouter)
 	apiRouter.Group("/api")
 
-	err := apiRouter.Run(addr)
-	if err != nil {
+	if err := apiRouter.Run(); err != nil {
 		panic(err)
 	}
 }

@@ -2,8 +2,10 @@ package server
 
 import (
 	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
-	grpc_tags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/sirupsen/logrus"
+	"net"
+
+	grpc_tags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 )
@@ -24,14 +26,32 @@ func RunGRPCServer(serviceName string, registerServer func(server *grpc.Server))
 	RunGRPCServerOnAddr(addr, registerServer)
 }
 
-func RunGRPCServerOnAddr(addr string, server func(server *grpc.Server)) {
+func RunGRPCServerOnAddr(addr string, registerServer func(server *grpc.Server)) {
 	logrusEntry := logrus.NewEntry(logrus.StandardLogger())
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			grpc_tags.UnaryServerInterceptor(grpc_tags.WithFieldExtractor(grpc_tags.CodeGenRequestFieldExtractor)),
 			grpc_logrus.UnaryServerInterceptor(logrusEntry),
 		),
-		grpc.ChainStreamInterceptor(),
-	)
+		grpc.ChainStreamInterceptor(
+			grpc_tags.StreamServerInterceptor(grpc_tags.WithFieldExtractor(grpc_tags.CodeGenRequestFieldExtractor)),
+			grpc_logrus.StreamServerInterceptor(logrusEntry),
+		))
 
+	registerServer(grpcServer)
+
+	listen, err := net.Listen("tcp", addr)
+	if err != nil {
+		logrus.Panic(err)
+	}
+	if err := grpcServer.Serve(listen); err != nil {
+		logrus.Panic(err)
+	}
 }
+
+// Order matters e.g. tracing interceptor have to create span first for the later exemplars to work.
+//otelgrpc.UnaryServerInterceptor(),
+//srvMetrics.UnaryServerInterceptor(grpcprom.WithExemplarFromContext(exemplarFromContext)),
+//logging.UnaryServerInterceptor(interceptorLogger(rpcLogger), logging.WithFieldsFromContext(logTraceID)),
+//selector.UnaryServerInterceptor(auth.UnaryServerInterceptor(authFn), selector.MatchFunc(allButHealthZ)),
+//recovery.UnaryServerInterceptor(recovery.WithRecoveryHandler(grpcPanicRecoveryHandler)),
