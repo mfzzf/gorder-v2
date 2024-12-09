@@ -39,11 +39,12 @@ func RunGRPCServerOnAddr(addr string, registerServer func(server *grpc.Server)) 
 		))
 
 	registerServer(grpcServer)
-
+	logrus.Infof("Starting Listening")
 	listen, err := net.Listen("tcp", addr)
 	if err != nil {
 		logrus.Panic(err)
 	}
+	logrus.Infof("Starting GRPC server, Listening : %s", addr)
 	if err := grpcServer.Serve(listen); err != nil {
 		logrus.Panic(err)
 	}

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Generate all etcd protobuf bindings.
-# Run from repository root directory named gorder-pay.
+# Run from domain root directory named gorder-pay.
 
 set -euo pipefail
 
